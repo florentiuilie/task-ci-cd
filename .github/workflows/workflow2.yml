@@ -29,9 +29,11 @@ jobs:
           # Build the image with a unique tag and a dev tag
           docker build -t $IMAGE_NAME:${{ github.sha }} .
           docker tag $IMAGE_NAME:${{ github.sha }} $IMAGE_NAME:dev
+          docker tag $IMAGE_NAME:${{ github.sha }} $IMAGE_NAME:prod
           
           # Push both tags to the registry
           docker push $IMAGE_NAME:${{ github.sha }}
+          docker push $IMAGE_NAME:prod
           docker push $IMAGE_NAME:dev
 
   # Run Tests (for pull requests and pre-deployment validation)
@@ -75,5 +77,5 @@ jobs:
           IMAGE_NAME: ${{ secrets.DOCKER_REPO }}
         run: |
           echo "Deploying to Production Environment..."
-          docker pull $IMAGE_NAME:latest
-          docker run -d --name sample-app-prod -p 80:80 $IMAGE_NAME:latest
+          docker pull $IMAGE_NAME:prod
+          docker run -d --name sample-app-prod -p 80:80 $IMAGE_NAME:prod
