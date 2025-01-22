@@ -19,7 +19,7 @@ jobs:
           node-version: '16'
 
       - name: Install dependencies
-        run: npm ci # Faster and cleaner dependency installation
+        run: npm install
 
       - name: Run tests
         run: npm test
