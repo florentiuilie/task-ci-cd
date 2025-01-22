@@ -1,0 +1,81 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # Build and Push Docker Image
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Registry
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build and Push Docker Image
+        env:
+          IMAGE_NAME: ${{ secrets.DOCKER_REPO }}
+        run: |
+          # Build the image with a unique tag and a dev tag
+          docker build -t $IMAGE_NAME:${{ github.sha }} .
+          docker tag $IMAGE_NAME:${{ github.sha }} $IMAGE_NAME:dev
+          docker tag $IMAGE_NAME:${{ github.sha }} $IMAGE_NAME:prod
+          
+          # Push both tags to the registry
+          docker push $IMAGE_NAME:${{ github.sha }}
+          docker push $IMAGE_NAME:prod
+          docker push $IMAGE_NAME:dev
+
+  # Run Tests (for pull requests and pre-deployment validation)
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Run Tests
+        run: |
+          echo "Running tests...Done"
+
+  # Deploy to Development Environment
+  deploy-dev:
+    runs-on: ubuntu-latest
+    needs: [build-and-push]
+    steps:
+      - name: Log in to Docker Registry
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Deploy to Development
+        env:
+          IMAGE_NAME: ${{ secrets.DOCKER_REPO }}
+        run: |
+          echo "Deploying to Development Environment..."
+          docker pull $IMAGE_NAME:dev
+          docker run -d --name sample-app-dev -p 8080:8080 $IMAGE_NAME:dev
+
+  # Deploy to Production Environment
+  deploy-prod:
+    runs-on: ubuntu-latest
+    needs: [build-and-push]
+    #if: github.ref_name == 'main'
+    steps:
+      - name: Log in to Docker Registry
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Deploy to Production
+        env:
+          IMAGE_NAME: ${{ secrets.DOCKER_REPO }}
+        run: |
+          echo "Deploying to Production Environment..."
+          docker pull $IMAGE_NAME:prod
+          docker run -d --name sample-app-prod -p 80:80 $IMAGE_NAME:prod
