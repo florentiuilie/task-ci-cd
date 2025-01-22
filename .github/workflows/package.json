@@ -1,0 +1,22 @@
+{
+  "name": "workflows",
+  "version": "1.0.0",
+  "description": "Configure Continuous Integration and Deployment (Delivery) flows from scratch",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \\\"Error: no test specified\\\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/florentiuilie/task-ci-cd.git"
+  },
+  "keywords": [
+    "neebo"
+  ],
+  "author": "Florentiu Ilie",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/florentiuilie/task-ci-cd/issues"
+  },
+  "homepage": "https://github.com/florentiuilie/task-ci-cd#readme"
+}
