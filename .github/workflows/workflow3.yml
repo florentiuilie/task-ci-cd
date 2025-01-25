@@ -29,9 +29,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npx semantic-release --dry-run
-          VERSION=$(npx semantic-release --ci | grep 'version' | head -n 1 | awk -F'"' '{print $4}')
+          # Run semantic release and capture version
+          VERSION=$(npx semantic-release --ci | grep -Eo '"version": "[^"]+"' | awk -F'"' '{print $4}')
+          if [ -z "$VERSION" ]; then
+            echo "Error: VERSION is not set"
+            exit 1
+          fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Generated version: $VERSION"
+
+      - name: Debug Environment Variables
+        run: |
+          echo "IMAGE_NAME=$IMAGE_NAME"
+          echo "VERSION=$VERSION"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -44,6 +54,10 @@ jobs:
           IMAGE_NAME: ${{ secrets.DOCKER_REPO }}
           VERSION: ${{ env.VERSION }}
         run: |
+          if [ -z "$VERSION" ]; then
+            echo "Error: VERSION is not set"
+            exit 1
+          fi
           docker build -t $IMAGE_NAME:$VERSION .
           docker tag $IMAGE_NAME:$VERSION $IMAGE_NAME:latest
           docker push $IMAGE_NAME:$VERSION
