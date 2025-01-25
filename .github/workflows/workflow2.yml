@@ -10,7 +10,7 @@ on:
 
 jobs:
   # Build and Push Docker Image
-  build-and-push:
+  build-and-version:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
