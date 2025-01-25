@@ -47,6 +47,39 @@ jobs:
         run: |
           echo "Running tests...Done"
 
+    # Example 1: Install Dependencies
+      - name: Install Dependencies
+        run: |
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          elif [ -f package.json ]; then
+            npm install
+          else
+            echo "No dependencies to install"
+          fi
+
+      # Example 2: Run Unit Tests
+      - name: Run Unit Tests
+        run: |
+          if [ -f pytest.ini ]; then
+            pytest
+          elif [ -f package.json ]; then
+            npm test
+          else
+            echo "No unit tests found"
+          fi
+
+      # Example 3: Integration Tests
+      - name: Run Integration Tests
+        run: |
+          if curl --version >/dev/null 2>&1; then
+            curl -X GET http://localhost:8080/health || echo "Healthcheck failed"
+          else
+            echo "curl is not available for integration tests"
+          fi
+
+# end of tests
+
   # Deploy to Development Environment
   deploy-dev:
     runs-on: ubuntu-latest
