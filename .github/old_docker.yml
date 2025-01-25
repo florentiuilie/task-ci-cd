@@ -35,7 +35,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
     - name: Setting up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
@@ -46,12 +45,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        # Ensure compatible versions of Flask and Jinja2
-        pip install "Flask>=2.1.0" "Jinja2<3.1"
 
     - name: Lint the code with flake8
       run: |
-        # Stop the build if there are Python syntax errors or undefined names
+        # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
@@ -59,7 +56,6 @@ jobs:
     - name: Test with unittest
       run: |
         python -m unittest discover
-
 
   # Build and push the Docker image
   push_to_registry:
