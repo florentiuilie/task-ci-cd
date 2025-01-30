@@ -62,10 +62,6 @@ jobs:
       - name: Log in to Docker Registry
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Debug Version Output2
-        id: get_version2
-        run: echo "Extracted VERSION: ${{ needs.versioning.outputs.new_version }}"
-
       - name: Build and Push Docker Image
         env:
           IMAGE_NAME: ${{ secrets.DOCKER_REPO }}
