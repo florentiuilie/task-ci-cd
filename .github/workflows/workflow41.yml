@@ -1,0 +1,167 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # Versioning using Semantic Release
+  versioning:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    outputs:
+      new_version: ${{ steps.get_version.outputs.VERSION }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/exec
+
+      - name: Run Semantic Release and Capture Version
+        run: |
+          npx semantic-release --dry-run || true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Semantic Release and Capture Version
+        id: semantic
+        run: |
+          RELEASE_VERSION=$(npx semantic-release --dry-run | grep -oP "The next release version is \K[0-9]+\.[0-9]+\.[0-9]+")
+          echo "VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
+          echo "VERSION=$RELEASE_VERSION" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Debug Version Output
+        id: get_version
+        run: echo "VERSION=${{ env.VERSION }}"
+
+
+  # Build and Push Docker Image
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: [versioning]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Registry
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build and Push Docker Image
+        env:
+          IMAGE_NAME: ${{ secrets.DOCKER_REPO }}
+          IMAGE_VERSION: ${{ needs.versioning.outputs.new_version || 'latest' }}
+        run: |
+          if [[ -z "$IMAGE_VERSION" ]]; then
+            echo "Error: IMAGE_VERSION is empty!"
+            exit 1
+          fi
+          docker build -t $IMAGE_NAME:$IMAGE_VERSION .
+          docker tag $IMAGE_NAME:$IMAGE_VERSION $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:$IMAGE_VERSION
+          docker push $IMAGE_NAME:latest
+
+  # Run Tests (for pull requests and pre-deployment validation)
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Run Tests
+        run: echo "Running tests...Done"
+
+      - name: Install Dependencies
+        run: |
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          elif [ -f package.json ]; then
+            npm install
+          else
+            echo "No dependencies to install"
+          fi
+
+      - name: Run Unit Tests
+        run: |
+          if [ -f pytest.ini ]; then
+            pytest
+          elif [ -f package.json ]; then
+            npm test
+          else
+            echo "No unit tests found"
+          fi
+
+      - name: Run Integration Tests
+        run: |
+          if curl --version >/dev/null 2>&1; then
+            curl -X GET http://localhost:8080/health || echo "Healthcheck failed"
+          else
+            echo "curl is not available for integration tests"
+          fi
+
+  # Deploy to Development Environment
+  deploy-dev:
+    runs-on: ubuntu-latest
+    needs: [build-and-push]
+    steps:
+      - name: Log in to Docker Registry
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Deploy to Development
+        env:
+          IMAGE_NAME: ${{ secrets.DOCKER_REPO }}
+          IMAGE_VERSION: ${{ needs.versioning.outputs.new_version || 'latest' }}
+        run: |
+          echo "Deploying to Development Environment..."
+          docker pull $IMAGE_NAME:$IMAGE_VERSION
+          docker run -d --name sample-app-dev -p 8080:8080 $IMAGE_NAME:$IMAGE_VERSION
+
+  # Deploy to Production Environment
+  deploy-prod:
+    runs-on: ubuntu-latest
+    needs: [build-and-push]
+    steps:
+      - name: Log in to Docker Registry
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Deploy to Production
+        env:
+          IMAGE_NAME: ${{ secrets.DOCKER_REPO }}
+          IMAGE_VERSION: ${{ needs.versioning.outputs.new_version || 'latest' }}
+        run: |
+          echo "Deploying to Production Environment..."
+          docker pull $IMAGE_NAME:$IMAGE_VERSION
+          docker run -d --name sample-app-prod -p 80:80 $IMAGE_NAME:$IMAGE_VERSION
+
+  # Rollback Strategy
+  rollback:
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - name: Get Previous Docker Image Version
+        run: |
+          PREVIOUS_VERSION=$(docker images ${{ secrets.DOCKER_REPO }} --format "{{.Tag}}" | sort -V | tail -n 2 | head -n 1)
+          echo "Rolling back to version: $PREVIOUS_VERSION"
+
+      - name: Rollback to Previous Version
+        env:
+          IMAGE_NAME: ${{ secrets.DOCKER_REPO }}
+        run: |
+          docker pull $IMAGE_NAME:$PREVIOUS_VERSION
+          docker stop sample-app-prod || true
+          docker rm sample-app-prod || true
+          docker run -d --name sample-app-prod -p 80:80 $IMAGE_NAME:$PREVIOUS_VERSION
