@@ -12,6 +12,7 @@ jobs:
   # Versioning using Semantic Release
   versioning:
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
     outputs:
       new_version: ${{ steps.get_version.outputs.VERSION }}
     steps:
@@ -31,7 +32,6 @@ jobs:
           npx semantic-release --dry-run || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 
       - name: Run Semantic Release and Capture Version
         id: semantic
