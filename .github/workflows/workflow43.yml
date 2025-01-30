@@ -70,7 +70,6 @@ jobs:
       - name: Build and Push Docker Image
         env:
           IMAGE_NAME: ${{ secrets.DOCKER_REPO }}
-          A
           IMAGE_VERSION: ${{ needs.versioning.outputs.new_version }}
         run: |
           if [[ -z "$IMAGE_VERSION" ]]; then
