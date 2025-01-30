@@ -25,13 +25,14 @@ jobs:
           node-version: 18
 
       - name: Install Dependencies
-        run: npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/exec
+        run: npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/exec @semantic-release/npm
 
       - name: Run Semantic Release and Capture Version
         run: |
           npx semantic-release --dry-run || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Run Semantic Release and Capture Version
         id: semantic
@@ -41,6 +42,7 @@ jobs:
           echo "VERSION=$RELEASE_VERSION" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Debug Version Output
         id: get_version
