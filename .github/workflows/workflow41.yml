@@ -112,7 +112,7 @@ jobs:
       - name: Deploy to Development
         env:
           IMAGE_NAME: ${{ secrets.DOCKER_REPO }}
-          IMAGE_VERSION: ${{ needs.versioning.outputs.new_version }}
+          IMAGE_VERSION: ${{ needs.versioning.outputs.new_version || 'latest' }}
         run: |
           echo "Deploying to Development Environment..."
           docker pull $IMAGE_NAME:$IMAGE_VERSION
@@ -129,8 +129,27 @@ jobs:
       - name: Deploy to Production
         env:
           IMAGE_NAME: ${{ secrets.DOCKER_REPO }}
-          IMAGE_VERSION: ${{ needs.versioning.outputs.new_version }}
+          IMAGE_VERSION: ${{ needs.versioning.outputs.new_version || 'latest' }}
         run: |
           echo "Deploying to Production Environment..."
           docker pull $IMAGE_NAME:$IMAGE_VERSION
           docker run -d --name sample-app-prod -p 80:80 $IMAGE_NAME:$IMAGE_VERSION
+
+  # Rollback Strategy
+  rollback:
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - name: Get Previous Docker Image Version
+        run: |
+          PREVIOUS_VERSION=$(docker images ${{ secrets.DOCKER_REPO }} --format "{{.Tag}}" | sort -V | tail -n 2 | head -n 1)
+          echo "Rolling back to version: $PREVIOUS_VERSION"
+
+      - name: Rollback to Previous Version
+        env:
+          IMAGE_NAME: ${{ secrets.DOCKER_REPO }}
+        run: |
+          docker pull $IMAGE_NAME:$PREVIOUS_VERSION
+          docker stop sample-app-prod || true
+          docker rm sample-app-prod || true
+          docker run -d --name sample-app-prod -p 80:80 $IMAGE_NAME:$PREVIOUS_VERSION
