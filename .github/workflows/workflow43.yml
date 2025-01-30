@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     outputs:
-      new_version: ${{ steps.get_version.outputs.VERSION }}
+      new_version: ${{ steps.semantic.outputs.version }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -38,15 +38,14 @@ jobs:
         id: semantic
         run: |
           RELEASE_VERSION=$(npx semantic-release --dry-run | grep -ioP "the next release version is \K[0-9]+\.[0-9]+\.[0-9]+")
-          echo "VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
-          echo "VERSION=$RELEASE_VERSION" >> $GITHUB_OUTPUT
+          echo "version=$RELEASE_VERSION" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Debug Version Output
         id: get_version
-        run: echo "VERSION=${{ env.VERSION }}"
+        run: echo "VERSION=${{ env.version }}"
 
   # Build and Push Docker Image
   build-and-push:
