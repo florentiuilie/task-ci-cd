@@ -163,20 +163,3 @@ jobs:
           docker stop sample-app-prod || true
           docker rm sample-app-prod || true
           docker run -d --name sample-app-prod -p 80:80 $IMAGE_NAME:$PREVIOUS_VERSION
-
-          #  # Validate Deployment
-          #  validate-deployment:
-          #   runs-on: ubuntu-latest
-          #   needs: [deploy-prod]
-          #steps:
-          #- name: Validate Development Deployment
-          #run: |
-          #echo "Validating Development Deployment..."
-          #curl -X GET http://localhost:8080/health || exit 1
-          #echo "Development deployment validated."
-
-          #- name: Validate Production Deployment
-          #run: |
-          #echo "Validating Production Deployment..."
-          #curl -X GET http://localhost:80/health || exit 1
-          #echo "Production deployment validated."
