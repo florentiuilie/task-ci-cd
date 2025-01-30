@@ -27,12 +27,12 @@ jobs:
       - name: Install Dependencies
         run: npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/exec @semantic-release/npm
 
-        #- name: Run Semantic Release - whole run
-        #run: |
-        #  npx semantic-release --dry-run || true
-        #env:
-        #  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        #  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Run Semantic Release - whole run
+        run: |
+          npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Run Semantic Release - extracting the version
         id: semantic
@@ -42,6 +42,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Debug Version Output
+        id: get_version
+        run: echo "VERSION=${{ env.version }}"
 
   # Build and Push Docker Image
   build-and-push:
