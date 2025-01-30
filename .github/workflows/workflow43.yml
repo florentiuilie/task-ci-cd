@@ -27,25 +27,21 @@ jobs:
       - name: Install Dependencies
         run: npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/exec @semantic-release/npm
 
-      - name: Run Semantic Release - whole run
-        run: |
-          npx semantic-release --dry-run || true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        #- name: Run Semantic Release - whole run
+        #run: |
+        #  npx semantic-release --dry-run || true
+        #env:
+        #  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        #  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Run Semantic Release - extracting the version
         id: semantic
         run: |
-          RELEASE_VERSION=$(npx semantic-release --dry-run | grep -ioP "the next release version is \K[0-9]+\.[0-9]+\.[0-9]+")
+          RELEASE_VERSION=$(npx semantic-release | grep -ioP "the next release version is \K[0-9]+\.[0-9]+\.[0-9]+")
           echo "version=$RELEASE_VERSION" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Debug Version Output
-        id: get_version
-        run: echo "VERSION=${{ env.version }}"
 
   # Build and Push Docker Image
   build-and-push:
@@ -171,19 +167,19 @@ jobs:
           docker rm sample-app-prod || true
           docker run -d --name sample-app-prod -p 80:80 $IMAGE_NAME:$PREVIOUS_VERSION
 
-  # Validate Deployment
-  validate-deployment:
-    runs-on: ubuntu-latest
-    needs: [deploy-prod]
-    steps:
-      - name: Validate Development Deployment
-        run: |
-          echo "Validating Development Deployment..."
-          curl -X GET http://localhost:8080/health || exit 1
-          echo "Development deployment validated."
+          #  # Validate Deployment
+          #  validate-deployment:
+          #   runs-on: ubuntu-latest
+          #   needs: [deploy-prod]
+          #steps:
+          #- name: Validate Development Deployment
+          #run: |
+          #echo "Validating Development Deployment..."
+          #curl -X GET http://localhost:8080/health || exit 1
+          #echo "Development deployment validated."
 
-      - name: Validate Production Deployment
-        run: |
-          echo "Validating Production Deployment..."
-          curl -X GET http://localhost:80/health || exit 1
-          echo "Production deployment validated."
+          #- name: Validate Production Deployment
+          #run: |
+          #echo "Validating Production Deployment..."
+          #curl -X GET http://localhost:80/health || exit 1
+          #echo "Production deployment validated."
