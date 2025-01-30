@@ -48,6 +48,10 @@ jobs:
         id: get_version
         run: echo "VERSION=${{ env.VERSION }}"
 
+      - name: Debug Version Output 2
+        id: get_version2
+        run: echo "Extracted VERSION: ${{ steps.semantic.outputs.VERSION }}"
+
 
   # Build and Push Docker Image
   build-and-push:
@@ -66,6 +70,7 @@ jobs:
       - name: Build and Push Docker Image
         env:
           IMAGE_NAME: ${{ secrets.DOCKER_REPO }}
+          A
           IMAGE_VERSION: ${{ needs.versioning.outputs.new_version }}
         run: |
           if [[ -z "$IMAGE_VERSION" ]]; then
