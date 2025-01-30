@@ -33,7 +33,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Debug Version Output
-        run: echo "New Version: ${{ steps.semantic.outputs.new_release_published }}"
+        run: echo "New Version"
 
   # Build and Push Docker Image
   build-and-push:
