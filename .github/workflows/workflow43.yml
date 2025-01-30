@@ -48,7 +48,6 @@ jobs:
         id: get_version
         run: echo "VERSION=${{ env.VERSION }}"
 
-
   # Build and Push Docker Image
   build-and-push:
     runs-on: ubuntu-latest
