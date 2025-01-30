@@ -27,14 +27,14 @@ jobs:
       - name: Install Dependencies
         run: npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/exec @semantic-release/npm
 
-      - name: Run Semantic Release and Capture Version
+      - name: Run Semantic Release - whole run
         run: |
           npx semantic-release --dry-run || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Run Semantic Release and Capture Version
+      - name: Run Semantic Release - extracting the version
         id: semantic
         run: |
           RELEASE_VERSION=$(npx semantic-release --dry-run | grep -oP "The next release version is \K[0-9]+\.[0-9]+\.[0-9]+")
