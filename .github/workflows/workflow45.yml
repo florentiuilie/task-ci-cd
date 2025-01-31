@@ -186,3 +186,28 @@ jobs:
           git add README.md
           git commit -m "docs: add CI/CD pipeline status badge"
           git push
+
+  # Notify via Email after Build and Deploy
+  notify-build-email:
+    runs-on: ubuntu-latest
+    needs: [build-and-push] # Ensure it runs after the deployment step
+    steps:
+      - name: Send Email Notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+         # SMTP Configuration
+          server_address: smtp.gmail.com # Replace with your SMTP server
+          server_port: 587              # Common port for TLS
+          username: ${{ secrets.SMTP_USERNAME }} # Email address from secrets
+          password: ${{ secrets.SMTP_PASSWORD }} # Email password from secrets
+          subject: "Build and Deployment Status: ${{ needs.deploy-prod.result }}"
+          to: "recipient@example.com"         # Replace with recipient email
+          from: "Your CI/CD Pipeline <${{ secrets.SMTP_USERNAME }}>"
+          body: |
+            Hi,
+
+            The build and deployment process for your repository was completed.
+            Deployment Status: ${{ needs.deploy-prod.result }}
+
+            Regards,
+            CI/CD Pipeline
