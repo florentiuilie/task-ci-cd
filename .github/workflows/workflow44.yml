@@ -180,7 +180,7 @@ jobs:
 
       - name: Update README with Build Status Badge
         run: |
-          echo "![CI/CD Pipeline](https://github.com/${{ secrets.DOCKER_USERNAME }}/task-ci-cd/actions/workflows/workflows44.yml/badge.svg)" >> README.md
+          echo "[![CI/CD Pipeline](https://github.com/${{ secrets.DOCKER_USERNAME }}/task-ci-cd/actions/workflows/workflows44.yml/badge.svg)" >> README.md
           git config --global user.email "github-actions@github.com"
           git config --global user.name "github-actions"
           git add README.md
