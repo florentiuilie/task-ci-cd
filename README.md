@@ -121,3 +121,4 @@ or use the automated deploy feature:
 For more information about using Python on Heroku, see these Dev Center articles:
 
  - [Python on Heroku](https://devcenter.heroku.com/categories/python)
+[![CI/CD Pipeline](https://github.com/ziggurat01/task-ci-cd/actions/workflows/workflows44.yml/badge.svg)
