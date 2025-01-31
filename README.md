@@ -1,4 +1,3 @@
-[![CI/CD Pipeline](https://github.com/florentiuilie/task-ci-cd/actions/workflows/workflows44.yml/badge.svg)](https://github.com/florentiuilie/task-ci-cd/actions/workflows/workflows44.yml)
 [![Build Status](https://travis-ci.org/edonosotti/ci-cd-tutorial-sample-app.svg?branch=master)](https://travis-ci.org/edonosotti/ci-cd-tutorial-sample-app)
 [![codebeat badge](https://codebeat.co/badges/0e006c74-a2f9-4f34-9cf4-2378fb7d995a)](https://codebeat.co/projects/github-com-edonosotti-ci-cd-tutorial-sample-app-master)
 [![Maintainability](https://api.codeclimate.com/v1/badges/e14a2647843de209fd5e/maintainability)](https://codeclimate.com/github/edonosotti/ci-cd-tutorial-sample-app/maintainability)
@@ -122,4 +121,3 @@ or use the automated deploy feature:
 For more information about using Python on Heroku, see these Dev Center articles:
 
  - [Python on Heroku](https://devcenter.heroku.com/categories/python)
-[![CI/CD Pipeline](https://github.com/ziggurat01/task-ci-cd/actions/workflows/workflows44.yml/badge.svg)
