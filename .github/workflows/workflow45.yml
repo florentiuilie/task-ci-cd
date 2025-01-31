@@ -173,7 +173,7 @@ jobs:
   # Update README with Status Badge
   status-badge-readme:
     runs-on: ubuntu-latest
-    needs: [build-and-push]
+    needs: [deploy-prod]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -190,7 +190,7 @@ jobs:
   # Notify via Email after Build and Deploy
   notify-build-email:
     runs-on: ubuntu-latest
-    needs: [build-and-push] # Ensure it runs after the deployment step
+    needs: [deploy-prod] # Ensure it runs after the deployment step
     steps:
       - name: Send Email Notification
         uses: dawidd6/action-send-mail@v3
@@ -200,14 +200,14 @@ jobs:
           server_port: 465              # Common port for TLS
           username: ${{ secrets.SMTP_USERNAME }} # Email address from secrets
           password: ${{ secrets.SMTP_PASSWORD }} # Email password from secrets
-          subject: "Build and Deployment Status: ${{ needs.build-and-push.result }}"
+          subject: "Build and Deployment Status: ${{ needs.deploy-prod.result }}"
           to: "florentiui@gmail.com"         # Replace with recipient email
           from: "Your CI/CD Pipeline <${{ secrets.SMTP_USERNAME }}>"
           body: |
             Hi,
 
             The build and push deployment process for your repository was completed.
-            Deployment Status: ${{ needs.build-and-push.result }}
+            Deployment Status: ${{ needs.deploy-prod.result }}
 
             Regards,
             CI/CD Pipeline
