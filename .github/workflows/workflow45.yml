@@ -77,25 +77,6 @@ jobs:
           docker push $IMAGE_NAME:$IMAGE_VERSION-dev
           docker push $IMAGE_NAME:$IMAGE_VERSION-prod
 
-      - name: Notify GitHub Users
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const issueComment = context.issue.number ? ` on issue #${context.issue.number}` : '';
-            const body = `
-              **CI/CD Pipeline Status:** Success 🎉
-        
-              Your build and deployment process was successful!
-              Check the logs here: ${process.env.GITHUB_RUN_URL}
-            `;
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number || context.payload.pull_request.number,
-              body: body,
-            });
-        
-
   # Run Tests (for pull requests and pre-deployment validation)
   test:
     runs-on: ubuntu-latest
