@@ -196,18 +196,18 @@ jobs:
         uses: dawidd6/action-send-mail@v3
         with:
          # SMTP Configuration
-          server_address: smtp.gmail.com # Replace with your SMTP server
-          server_port: 587              # Common port for TLS
+          server_address: smtp.mail.yahoo.com # Replace with your SMTP server
+          server_port: 465              # Common port for TLS
           username: ${{ secrets.SMTP_USERNAME }} # Email address from secrets
           password: ${{ secrets.SMTP_PASSWORD }} # Email password from secrets
-          subject: "Build and Deployment Status: ${{ needs.deploy-prod.result }}"
-          to: "recipient@example.com"         # Replace with recipient email
+          subject: "Build and Deployment Status: ${{ needs.build-and-push.result }}"
+          to: "florentiui@gmail.com"         # Replace with recipient email
           from: "Your CI/CD Pipeline <${{ secrets.SMTP_USERNAME }}>"
           body: |
             Hi,
 
-            The build and deployment process for your repository was completed.
-            Deployment Status: ${{ needs.deploy-prod.result }}
+            The build and push deployment process for your repository was completed.
+            Deployment Status: ${{ needs.build-and-push.result }}
 
             Regards,
             CI/CD Pipeline
