@@ -1,34 +1,20 @@
-FROM python:3.9-slim
+FROM ubuntu:18.04
 
-# Install necessary system packages
 RUN apt-get update && \
     apt-get -y upgrade && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
-    libpq-dev gcc python3-pip && \
-    rm -rf /var/lib/apt/lists/*
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq libpq-dev gcc python3.8 python3-pip && \
+    apt-get clean
 
-# Set the working directory
 WORKDIR /sample-app
 
-# Copy only necessary files first
-COPY requirements.txt requirements-server.txt ./
+COPY . /sample-app/
 
-# Install dependencies
-RUN pip3 install -r requirements.txt && pip3 install -r requirements-server.txt
+RUN pip3 install -r requirements.txt && \
+    pip3 install -r requirements-server.txt
 
-# Copy the application code
-COPY . .
-
-# Copy and set up entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-# Set environment variables
 ENV LC_ALL="C.UTF-8"
 ENV LANG="C.UTF-8"
 
-# Expose application port
 EXPOSE 8000/tcp
 
-# Start the application
-CMD ["/entrypoint.sh"]
+CMD ["/bin/sh", "-c", "flask db upgrade && gunicorn app:app -b 0.0.0.0:8000"]
