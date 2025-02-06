@@ -51,21 +51,25 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      - name: Assume IAM Role
+        id: assume-role
+        run: |
+          ROLE_CREDENTIALS=$(aws sts assume-role \
+            --role-arn ${{ secrets.IAM_ROLE_ARN }} \
+            --role-session-name github-actions-session)
 
-      - name: Set AWS Region
-        run: echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> $GITHUB_ENV
+          echo "AWS_ACCESS_KEY_ID=$(echo $ROLE_CREDENTIALS | jq -r '.Credentials.AccessKeyId')" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=$(echo $ROLE_CREDENTIALS | jq -r '.Credentials.SecretAccessKey')" >> $GITHUB_ENV
+          echo "AWS_SESSION_TOKEN=$(echo $ROLE_CREDENTIALS | jq -r '.Credentials.SessionToken')" >> $GITHUB_ENV
 
       - name: Log in to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
-
-
 
       - name: Build and Push Docker Image to Amazon ECR
         env:
@@ -91,6 +95,7 @@ jobs:
           echo "Pushing images to Amazon ECR..."
           docker push $ECR_IMAGE_URL:$IMAGE_VERSION
           docker push $ECR_IMAGE_URL:latest
+
 
   # Deploy to Development Environment
   deploy-environment:
